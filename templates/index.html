@@ -3,15 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitoring Telur Ayam</title>
+    <title>Monitoring Sensor Kandang</title>
 </head>
 <body>
-    <h1>Data Telur Harian</h1>
-    {% if data.error %}
-        <p style="color: red;">Gagal mengambil data: {{ data.error }}</p>
-    {% else %}
-        <p><strong>Tanggal:</strong> {{ data.tanggal }}</p>
-        <p><strong>Jumlah Telur:</strong> {{ data.jumlah_telur }}</p>
-    {% endif %}
+    <h1>Data Sensor</h1>
+    <pre id="sensorData">Memuat data...</pre>
+
+    <script>
+        async function fetchSensorData() {
+            try {
+                let response = await fetch("/api/sensors");
+                let data = await response.json();
+                document.getElementById("sensorData").innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById("sensorData").innerText = "Gagal mengambil data.";
+                console.error(error);
+            }
+        }
+
+        setInterval(fetchSensorData, 2000); // Update setiap 2 detik
+        fetchSensorData();
+    </script>
 </body>
 </html>

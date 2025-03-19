@@ -1,28 +1,41 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, jsonify, render_template
 import requests
 
 app = Flask(__name__)
 
-# Ganti dengan alamat API Raspberry Pi Pico W yang benar
-PICO_W_API_URL = "http://192.168.56.150:5000/"
+# Ganti dengan IP dari MicroDot Anda
+ESP32_IP = "http://192.168.56.104:5000/"  # Sesuaikan dengan IP ESP32 di jaringan Anda
 
-def ambil_data_telur():
+# Fungsi untuk mengambil data dari MicroDot
+def get_sensor_data(endpoint):
     try:
-        response = requests.get(PICO_W_API_URL)
-        data = response.json()
-        return data
+        response = requests.get(f"{ESP32_IP}/api/{endpoint}")
+        return response.json()
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
 @app.route('/')
 def index():
-    data = ambil_data_telur()
-    return render_template("index.html", data=data)
+    return render_template('index.html')
 
-@app.route('/api')
-def api():
-    data = ambil_data_telur()
+# Route untuk mendapatkan semua data sensor
+@app.route('/api/sensors', methods=['GET'])
+def get_all_sensors():
+    data = {
+        "suhu": get_sensor_data("suhu"),
+        "kelembapan": get_sensor_data("kelembapan"),
+        "amonia": get_sensor_data("amonia"),
+        "oksigen": get_sensor_data("oksigen"),
+        "karbondioksida": get_sensor_data("karbondioksida"),
+        "karbonmonoksida": get_sensor_data("karbonmonoksida")
+    }
     return jsonify(data)
 
+# Route untuk mendapatkan data suhu saja
+@app.route('/api/suhu', methods=['GET'])
+def get_suhu():
+    return jsonify(get_sensor_data("suhu"))
+
+# Jalankan server Flask
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
